@@ -27,7 +27,7 @@ export default function Vesting() {
     setLoading(true);
     vestingApi.list(address)
       .then(setSchedules)
-      .catch(e => setError(e.message))
+      .catch(e => setError(e instanceof Error ? e.message : 'Failed to load schedules'))
       .finally(() => setLoading(false));
   }, [address]);
 
