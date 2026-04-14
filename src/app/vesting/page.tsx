@@ -13,6 +13,7 @@ function vestPct(s: ApiVestingSchedule): number {
   const now = Math.floor(Date.now() / 1000);
   if (now < s.cliffTime) return 0;
   if (now >= s.endTime)  return 100;
+  if (s.endTime === s.cliffTime) return 100;
   return Math.round(((now - s.cliffTime) / (s.endTime - s.cliffTime)) * 100);
 }
 
