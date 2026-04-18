@@ -51,10 +51,10 @@ export default function Dashboard() {
               id={s.id}
               recipient={s.recipient}
               token={s.token}
-              ratePerSecond={BigInt(s.ratePerSecond)}
+              ratePerSecond={BigInt(s.ratePerSecond || '0')}
               startTime={s.startTime}
               stopTime={s.stopTime}
-              withdrawn={BigInt(s.withdrawn)}
+              withdrawn={BigInt(s.withdrawn || '0')}
               cancelled={s.status === 'cancelled'}
             />
           ))}
