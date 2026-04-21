@@ -55,7 +55,7 @@ export default function Dashboard() {
               startTime={s.startTime}
               stopTime={s.stopTime}
               withdrawn={BigInt(s.withdrawn || '0')}
-              cancelled={s.status === 'cancelled'}
+              status={s.status}
             />
           ))}
         </div>
