@@ -33,7 +33,7 @@ export default function StreamDetail() {
   const isSender    = address === stream.sender;
   const isRecipient = address === stream.recipient;
   const isActive    = stream.status === 'active';
-  const perDay      = (Number(stream.ratePerSecond) * 86400 / 1e7).toFixed(4);
+  const perDay      = (Number(BigInt(stream.ratePerSecond) * 86_400n) / 1e7).toFixed(4);
 
   return (
     <div className={styles.page}>
