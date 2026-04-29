@@ -1,0 +1,24 @@
+.receipt {
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  border: 1px solid #6366f1;
+  border-radius: 12px;
+  padding: 1.5rem;
+  max-width: 320px;
+  font-family: monospace;
+}
+.header {
+  display: flex; justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+.logo { color: #6366f1; font-weight: 700; }
+.id   { color: #94a3b8; font-size: 0.8rem; }
+.body { text-align: center; margin-bottom: 1.25rem; }
+.label { color: #94a3b8; font-size: 0.75rem; margin-bottom: 0.5rem; }
+.rate  { font-size: 1.5rem; font-weight: 700; color: #f1f5f9; }
+.flow  { color: #94a3b8; font-size: 0.8rem; margin-top: 0.5rem; }
+.footer {
+  display: flex; justify-content: space-between;
+  border-top: 1px solid #334155;
+  padding-top: 0.75rem;
+  font-size: 0.7rem; color: #64748b;
+}
