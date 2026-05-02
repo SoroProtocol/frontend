@@ -20,6 +20,8 @@ export default function StreamDetail() {
     stream ? BigInt(stream.withdrawn)     : 0n,
     stream?.startTime ?? 0,
     stream?.stopTime  ?? 0,
+    200,
+    stream?.status === 'active',
   );
 
   if (loading) return <div className={styles.loading}>Loading stream…</div>;
