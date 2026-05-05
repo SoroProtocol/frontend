@@ -32,7 +32,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     }}>
       {children}
       <div className={styles.container} aria-live="polite">
-        {toasts.map(t => (
+        {toasts.filter(t => t.type !== 'error').map(t => (
+          <div key={t.id} className={`${styles.toast} ${styles[t.type]}`}>
+            {t.message}
+          </div>
+        ))}
+      </div>
+      <div className={styles.container} aria-live="assertive" role="alert">
+        {toasts.filter(t => t.type === 'error').map(t => (
           <div key={t.id} className={`${styles.toast} ${styles[t.type]}`}>
             {t.message}
           </div>
