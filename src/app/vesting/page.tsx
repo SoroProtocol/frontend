@@ -74,7 +74,14 @@ export default function Vesting() {
                   </div>
                 ))}
 
-                <div className={styles.bar}>
+                <div
+                  className={styles.bar}
+                  role="progressbar"
+                  aria-valuenow={pct}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label="Vesting progress"
+                >
                   <div className={styles.fill} style={{ width: `${pct}%` }} />
                 </div>
                 <p className={styles.pctLabel}>{pct}% vested</p>
