@@ -52,7 +52,14 @@ export function StreamCard(props: StreamCardProps) {
         <span className={styles.value}>{formatRate(props.ratePerSecond)}</span>
       </div>
 
-      <div className={styles.progressBar}>
+      <div
+        className={styles.progressBar}
+        role="progressbar"
+        aria-valuenow={pct}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="Stream elapsed"
+      >
         <div className={styles.progressFill} style={{ width: `${pct}%` }} />
       </div>
       <p className={styles.progressLabel}>{pct}% elapsed</p>
