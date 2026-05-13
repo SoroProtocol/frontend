@@ -23,7 +23,7 @@ export function Navbar() {
           <span className={styles.logoIcon}>◈</span> SoroProtocol
         </Link>
 
-        <ul className={`${styles.links} ${open ? styles.open : ''}`}>
+        <ul id="nav-menu" className={`${styles.links} ${open ? styles.open : ''}`}>
           {NAV_LINKS.map(l => (
             <li key={l.href}>
               <Link
@@ -43,8 +43,10 @@ export function Navbar() {
             className={styles.burger}
             onClick={() => setOpen(o => !o)}
             aria-label="Toggle menu"
+            aria-expanded={open}
+            aria-controls="nav-menu"
           >
-            <span /><span /><span />
+            <span aria-hidden="true" /><span aria-hidden="true" /><span aria-hidden="true" />
           </button>
         </div>
       </div>
