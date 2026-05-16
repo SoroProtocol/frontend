@@ -12,7 +12,7 @@ export function WalletButton() {
   if (address) {
     return (
       <div className={styles.connected}>
-        <span className={styles.dot} />
+        <span className={styles.dot} aria-hidden="true" />
         <span className={styles.addr}>{truncate(address)}</span>
         <button className={styles.disconnect} onClick={disconnect}>
           Disconnect
