@@ -74,8 +74,9 @@ export default function CreateStream() {
             placeholder="G..."
             value={form.recipient}
             onChange={e => setForm(f => ({ ...f, recipient: e.target.value }))}
+            aria-describedby={errors.recipient ? 'recipient-error' : undefined}
           />
-          {errors.recipient && <span className={styles.error}>{errors.recipient}</span>}
+          {errors.recipient && <span id="recipient-error" className={styles.error}>{errors.recipient}</span>}
         </label>
 
         <label className={styles.field}>
@@ -98,8 +99,9 @@ export default function CreateStream() {
             placeholder="e.g. 10"
             value={form.ratePerDay}
             onChange={e => setForm(f => ({ ...f, ratePerDay: e.target.value }))}
+            aria-describedby={errors.ratePerDay ? 'rate-error' : undefined}
           />
-          {errors.ratePerDay && <span className={styles.error}>{errors.ratePerDay}</span>}
+          {errors.ratePerDay && <span id="rate-error" className={styles.error}>{errors.ratePerDay}</span>}
         </label>
 
         <div className={styles.dateRow}>
@@ -110,8 +112,9 @@ export default function CreateStream() {
               type="datetime-local"
               value={form.startDate}
               onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))}
+              aria-describedby={errors.startDate ? 'start-error' : undefined}
             />
-            {errors.startDate && <span className={styles.error}>{errors.startDate}</span>}
+            {errors.startDate && <span id="start-error" className={styles.error}>{errors.startDate}</span>}
           </label>
           <label className={styles.field}>
             <span>End Date</span>
@@ -120,8 +123,9 @@ export default function CreateStream() {
               type="datetime-local"
               value={form.stopDate}
               onChange={e => setForm(f => ({ ...f, stopDate: e.target.value }))}
+              aria-describedby={errors.stopDate ? 'stop-error' : undefined}
             />
-            {errors.stopDate && <span className={styles.error}>{errors.stopDate}</span>}
+            {errors.stopDate && <span id="stop-error" className={styles.error}>{errors.stopDate}</span>}
           </label>
         </div>
 
