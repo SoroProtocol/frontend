@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useWallet }   from '@/context/WalletContext';
+import { useToast }    from '@/context/ToastContext';
 import { vestingApi, type ApiVestingSchedule } from '@/services/api';
 import styles from './vesting.module.css';
 
@@ -19,6 +20,7 @@ function vestPct(s: ApiVestingSchedule): number {
 
 export default function Vesting() {
   const { address }   = useWallet();
+  const toast         = useToast();
   const [schedules, setSchedules] = useState<ApiVestingSchedule[]>([]);
   const [loading,   setLoading]   = useState(false);
   const [error,     setError]     = useState<string | null>(null);
@@ -87,7 +89,12 @@ export default function Vesting() {
                 <p className={styles.pctLabel}>{pct}% vested</p>
 
                 {!s.revoked && (
-                  <button className={styles.claimBtn}>Claim Vested Tokens</button>
+                  <button
+                    className={styles.claimBtn}
+                    onClick={() => toast.info('On-chain claim coming in the next release')}
+                  >
+                    Claim Vested Tokens
+                  </button>
                 )}
               </div>
             );
