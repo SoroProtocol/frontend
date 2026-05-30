@@ -3,6 +3,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useStream }          from '@/hooks/useStreams';
 import { useWallet }          from '@/context/WalletContext';
 import { useStreamBalance }   from '@/hooks/useStreamBalance';
+import { useToast }           from '@/context/ToastContext';
 import styles                 from './stream.module.css';
 
 function fmt(stroops: bigint): string {
@@ -13,6 +14,7 @@ export default function StreamDetail() {
   const { id }                     = useParams<{ id: string }>();
   const router                     = useRouter();
   const { address }                = useWallet();
+  const toast                      = useToast();
   const { stream, loading, error } = useStream(id);
 
   const balance = useStreamBalance(
@@ -70,12 +72,18 @@ export default function StreamDetail() {
               className={styles.btnWithdraw}
               disabled={balance === 0n}
               title={balance === 0n ? 'Nothing to withdraw yet' : undefined}
+              onClick={() => toast.info('Withdraw submitted — confirm in Freighter')}
             >
               Withdraw {fmt(balance)} XLM
             </button>
           )}
           {isSender && (
-            <button className={styles.btnCancel}>Cancel Stream</button>
+            <button
+              className={styles.btnCancel}
+              onClick={() => toast.info('Cancel request submitted — confirm in Freighter')}
+            >
+              Cancel Stream
+            </button>
           )}
           {!isSender && !isRecipient && (
             <p className={styles.notParty}>Connect the sender or recipient wallet to take action.</p>
