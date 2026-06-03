@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { WalletButton } from '@/components/atoms/WalletButton';
+import { ThemeToggle }  from '@/components/atoms/ThemeToggle';
 import styles from './Navbar.module.css';
 
 const NAV_LINKS = [
@@ -38,6 +39,7 @@ export function Navbar() {
         </ul>
 
         <div className={styles.right}>
+          <ThemeToggle />
           <WalletButton />
           <button
             className={styles.burger}
