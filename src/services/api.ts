@@ -50,20 +50,20 @@ export interface StreamAnalytics {
 
 export const streamsApi = {
   list: (address?: string) =>
-    request<ApiStream[]>(`/streams${address ? `?address=${address}` : ''}`),
+    request<ApiStream[]>(`/streams${address ? `?address=${encodeURIComponent(address)}` : ''}`),
 
   get: (id: string) =>
     request<ApiStream>(`/streams/${id}`),
 
   analytics: (address: string) =>
-    request<StreamAnalytics>(`/streams/analytics?address=${address}`),
+    request<StreamAnalytics>(`/streams/analytics?address=${encodeURIComponent(address)}`),
 };
 
 // ── Vesting ────────────────────────────────────────────────────────────────
 
 export const vestingApi = {
   list: (address?: string) =>
-    request<ApiVestingSchedule[]>(`/vesting${address ? `?address=${address}` : ''}`),
+    request<ApiVestingSchedule[]>(`/vesting${address ? `?address=${encodeURIComponent(address)}` : ''}`),
 
   get: (id: string) =>
     request<ApiVestingSchedule>(`/vesting/${id}`),

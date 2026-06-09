@@ -10,6 +10,7 @@ interface ToastCtx {
   success: (msg: string) => void;
   error:   (msg: string) => void;
   info:    (msg: string) => void;
+  warning: (msg: string) => void;
 }
 
 const Ctx = createContext<ToastCtx | null>(null);
@@ -29,6 +30,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       success: m => add(m, 'success'),
       error:   m => add(m, 'error'),
       info:    m => add(m, 'info'),
+      warning: m => add(m, 'warning'),
     }}>
       {children}
       <div className={styles.container} aria-live="polite">
