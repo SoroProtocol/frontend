@@ -3,6 +3,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useStream }          from '@/hooks/useStreams';
 import { useWallet }          from '@/context/WalletContext';
 import { useStreamBalance }   from '@/hooks/useStreamBalance';
+import { useToast }           from '@/context/ToastContext';
 import styles                 from './stream.module.css';
 
 function fmt(stroops: bigint): string {
@@ -13,6 +14,7 @@ export default function StreamDetail() {
   const { id }                     = useParams<{ id: string }>();
   const router                     = useRouter();
   const { address }                = useWallet();
+  const toast                      = useToast();
   const { stream, loading, error } = useStream(id);
 
   const balance = useStreamBalance(
@@ -20,6 +22,8 @@ export default function StreamDetail() {
     stream ? BigInt(stream.withdrawn)     : 0n,
     stream?.startTime ?? 0,
     stream?.stopTime  ?? 0,
+    200,
+    stream?.status === 'active',
   );
 
   if (loading) return <div className={styles.loading}>Loading stream…</div>;
@@ -33,7 +37,7 @@ export default function StreamDetail() {
   const isSender    = address === stream.sender;
   const isRecipient = address === stream.recipient;
   const isActive    = stream.status === 'active';
-  const perDay      = (Number(stream.ratePerSecond) * 86400 / 1e7).toFixed(4);
+  const perDay      = (Number(BigInt(stream.ratePerSecond) * 86_400n) / 1e7).toFixed(4);
 
   return (
     <div className={styles.page}>
@@ -68,12 +72,18 @@ export default function StreamDetail() {
               className={styles.btnWithdraw}
               disabled={balance === 0n}
               title={balance === 0n ? 'Nothing to withdraw yet' : undefined}
+              onClick={() => toast.info('Withdraw submitted — confirm in Freighter')}
             >
               Withdraw {fmt(balance)} XLM
             </button>
           )}
           {isSender && (
-            <button className={styles.btnCancel}>Cancel Stream</button>
+            <button
+              className={styles.btnCancel}
+              onClick={() => toast.info('Cancel request submitted — confirm in Freighter')}
+            >
+              Cancel Stream
+            </button>
           )}
           {!isSender && !isRecipient && (
             <p className={styles.notParty}>Connect the sender or recipient wallet to take action.</p>

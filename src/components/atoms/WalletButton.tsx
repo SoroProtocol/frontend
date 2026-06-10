@@ -7,12 +7,12 @@ function truncate(addr: string) {
 }
 
 export function WalletButton() {
-  const { address, connecting, connect, disconnect } = useWallet();
+  const { address, connecting, connect, disconnect, error } = useWallet();
 
   if (address) {
     return (
       <div className={styles.connected}>
-        <span className={styles.dot} />
+        <span className={styles.dot} aria-hidden="true" />
         <span className={styles.addr}>{truncate(address)}</span>
         <button className={styles.disconnect} onClick={disconnect}>
           Disconnect
@@ -22,8 +22,11 @@ export function WalletButton() {
   }
 
   return (
-    <button className={styles.connect} onClick={connect} disabled={connecting}>
-      {connecting ? 'Connecting…' : 'Connect Wallet'}
-    </button>
+    <>
+      <button className={styles.connect} onClick={connect} disabled={connecting}>
+        {connecting ? 'Connecting…' : 'Connect Wallet'}
+      </button>
+      {error && <p className={styles.error}>{error}</p>}
+    </>
   );
 }

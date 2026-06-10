@@ -10,7 +10,7 @@ export interface StreamCardProps {
   startTime:     number;
   stopTime:      number;
   withdrawn:     bigint;
-  cancelled:     boolean;
+  status:        'active' | 'cancelled' | 'completed';
 }
 
 function truncate(addr: string) {
@@ -37,8 +37,8 @@ export function StreamCard(props: StreamCardProps) {
     <Link href={`/streams/${props.id}`} className={styles.card}>
       <div className={styles.header}>
         <span className={styles.id}>Stream #{props.id}</span>
-        <span className={`${styles.badge} ${props.cancelled ? styles.cancelled : styles.active}`}>
-          {props.cancelled ? 'Cancelled' : 'Active'}
+        <span className={`${styles.badge} ${styles[props.status]}`}>
+          {props.status.charAt(0).toUpperCase() + props.status.slice(1)}
         </span>
       </div>
 
@@ -52,7 +52,14 @@ export function StreamCard(props: StreamCardProps) {
         <span className={styles.value}>{formatRate(props.ratePerSecond)}</span>
       </div>
 
-      <div className={styles.progressBar}>
+      <div
+        className={styles.progressBar}
+        role="progressbar"
+        aria-valuenow={pct}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="Stream elapsed"
+      >
         <div className={styles.progressFill} style={{ width: `${pct}%` }} />
       </div>
       <p className={styles.progressLabel}>{pct}% elapsed</p>

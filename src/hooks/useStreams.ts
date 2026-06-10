@@ -14,7 +14,7 @@ export function useStreams(address?: string | null): UseStreamsReturn {
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState<string | null>(null);
 
-  const fetch = useCallback(async () => {
+  const loadStreams = useCallback(async () => {
     if (!address) { setStreams([]); return; }
     setLoading(true);
     setError(null);
@@ -28,9 +28,9 @@ export function useStreams(address?: string | null): UseStreamsReturn {
     }
   }, [address]);
 
-  useEffect(() => { void fetch(); }, [fetch]);
+  useEffect(() => { void loadStreams(); }, [loadStreams]);
 
-  return { streams, loading, error, refetch: fetch };
+  return { streams, loading, error, refetch: loadStreams };
 }
 
 interface UseStreamReturn {
@@ -45,7 +45,7 @@ export function useStream(id: string | null): UseStreamReturn {
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState<string | null>(null);
 
-  const fetch = useCallback(async () => {
+  const loadStream = useCallback(async () => {
     if (!id) return;
     setLoading(true);
     setError(null);
@@ -59,6 +59,6 @@ export function useStream(id: string | null): UseStreamReturn {
     }
   }, [id]);
 
-  useEffect(() => { void fetch(); }, [fetch]);
-  return { stream, loading, error, refetch: fetch };
+  useEffect(() => { void loadStream(); }, [loadStream]);
+  return { stream, loading, error, refetch: loadStream };
 }

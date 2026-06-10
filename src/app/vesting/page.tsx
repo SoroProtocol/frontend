@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useWallet }   from '@/context/WalletContext';
+import { useToast }    from '@/context/ToastContext';
 import { vestingApi, type ApiVestingSchedule } from '@/services/api';
 import styles from './vesting.module.css';
 
@@ -13,11 +14,13 @@ function vestPct(s: ApiVestingSchedule): number {
   const now = Math.floor(Date.now() / 1000);
   if (now < s.cliffTime) return 0;
   if (now >= s.endTime)  return 100;
+  if (s.endTime === s.cliffTime) return 100;
   return Math.round(((now - s.cliffTime) / (s.endTime - s.cliffTime)) * 100);
 }
 
 export default function Vesting() {
   const { address }   = useWallet();
+  const toast         = useToast();
   const [schedules, setSchedules] = useState<ApiVestingSchedule[]>([]);
   const [loading,   setLoading]   = useState(false);
   const [error,     setError]     = useState<string | null>(null);
@@ -27,7 +30,7 @@ export default function Vesting() {
     setLoading(true);
     vestingApi.list(address)
       .then(setSchedules)
-      .catch(e => setError(e.message))
+      .catch(e => setError(e instanceof Error ? e.message : 'Failed to load schedules'))
       .finally(() => setLoading(false));
   }, [address]);
 
@@ -73,13 +76,25 @@ export default function Vesting() {
                   </div>
                 ))}
 
-                <div className={styles.bar}>
+                <div
+                  className={styles.bar}
+                  role="progressbar"
+                  aria-valuenow={pct}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label="Vesting progress"
+                >
                   <div className={styles.fill} style={{ width: `${pct}%` }} />
                 </div>
                 <p className={styles.pctLabel}>{pct}% vested</p>
 
                 {!s.revoked && (
-                  <button className={styles.claimBtn}>Claim Vested Tokens</button>
+                  <button
+                    className={styles.claimBtn}
+                    onClick={() => toast.info('On-chain claim coming in the next release')}
+                  >
+                    Claim Vested Tokens
+                  </button>
                 )}
               </div>
             );

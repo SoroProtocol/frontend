@@ -30,7 +30,7 @@ export default function Home() {
       <section className={styles.features}>
         {FEATURES.map(f => (
           <div key={f.title} className={styles.featureCard}>
-            <span className={styles.featureIcon}>{f.icon}</span>
+            <span className={styles.featureIcon} aria-hidden="true">{f.icon}</span>
             <h3>{f.title}</h3>
             <p>{f.description}</p>
           </div>

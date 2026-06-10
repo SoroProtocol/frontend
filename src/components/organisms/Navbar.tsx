@@ -1,8 +1,9 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { WalletButton } from '@/components/atoms/WalletButton';
+import { ThemeToggle }  from '@/components/atoms/ThemeToggle';
 import styles from './Navbar.module.css';
 
 const NAV_LINKS = [
@@ -16,6 +17,13 @@ export function Navbar() {
   const pathname   = usePathname();
   const [open, setOpen] = useState(false);
 
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [open]);
+
   return (
     <nav className={styles.nav}>
       <div className={styles.inner}>
@@ -23,7 +31,7 @@ export function Navbar() {
           <span className={styles.logoIcon}>◈</span> SoroProtocol
         </Link>
 
-        <ul className={`${styles.links} ${open ? styles.open : ''}`}>
+        <ul id="nav-menu" className={`${styles.links} ${open ? styles.open : ''}`}>
           {NAV_LINKS.map(l => (
             <li key={l.href}>
               <Link
@@ -38,13 +46,16 @@ export function Navbar() {
         </ul>
 
         <div className={styles.right}>
+          <ThemeToggle />
           <WalletButton />
           <button
             className={styles.burger}
             onClick={() => setOpen(o => !o)}
             aria-label="Toggle menu"
+            aria-expanded={open}
+            aria-controls="nav-menu"
           >
-            <span /><span /><span />
+            <span aria-hidden="true" /><span aria-hidden="true" /><span aria-hidden="true" />
           </button>
         </div>
       </div>

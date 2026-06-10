@@ -11,6 +11,7 @@ export function useStreamBalance(
   startTime:     number,
   stopTime:      number,
   tick = 200,
+  enabled = true,
 ) {
   const [balance, setBalance]   = useState(0n); // always 0n on SSR
   const [mounted, setMounted]   = useState(false);
@@ -20,7 +21,7 @@ export function useStreamBalance(
   useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
-    if (!mounted) return;
+    if (!mounted || !enabled) return;
 
     const compute = () => {
       const now = Math.floor(Date.now() / 1000);
@@ -33,7 +34,7 @@ export function useStreamBalance(
     compute();
     timerRef.current = setInterval(compute, tick);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [mounted, ratePerSecond, lastWithdrawn, startTime, stopTime, tick]);
+  }, [mounted, enabled, ratePerSecond, lastWithdrawn, startTime, stopTime, tick]);
 
   return balance;
 }
