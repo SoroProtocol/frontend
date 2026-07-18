@@ -61,12 +61,27 @@ export const streamsApi = {
 
 // ── Vesting ────────────────────────────────────────────────────────────────
 
+export interface NewVestingSchedule {
+  beneficiary: string;
+  token:       string;
+  totalAmount: string;
+  startTime:   number;
+  cliffTime:   number;
+  endTime:     number;
+}
+
 export const vestingApi = {
   list: (address?: string) =>
     request<ApiVestingSchedule[]>(`/vesting${address ? `?address=${encodeURIComponent(address)}` : ''}`),
 
   get: (id: string) =>
     request<ApiVestingSchedule>(`/vesting/${id}`),
+
+  create: (schedule: NewVestingSchedule) =>
+    request<ApiVestingSchedule>('/vesting', {
+      method: 'POST',
+      body: JSON.stringify(schedule),
+    }),
 };
 
 // ── Webhooks ───────────────────────────────────────────────────────────────
