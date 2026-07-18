@@ -10,16 +10,6 @@
 }
 .newBtn:hover { background: var(--accent-hover); color: #fff; }
 
-.comingSoon {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 2rem 1.5rem;
-  text-align: center;
-  color: var(--text-muted);
-}
-.comingSoonSub { font-size: 0.875rem; margin-top: 0.5rem; }
-
 .list { display: flex; flex-direction: column; gap: 1rem; }
 
 .card {
