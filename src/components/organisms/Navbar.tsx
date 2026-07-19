@@ -10,6 +10,7 @@ const NAV_LINKS = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/create',    label: 'New Stream' },
   { href: '/vesting',   label: 'Vesting' },
+  { href: '/settings',  label: 'Settings' },
   { href: '/docs',      label: 'Docs' },
 ];
 

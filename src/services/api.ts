@@ -86,13 +86,22 @@ export const vestingApi = {
 
 // ── Webhooks ───────────────────────────────────────────────────────────────
 
+export type WebhookEvent = 'stream.created' | 'stream.withdrawn' | 'stream.cancelled';
+
+export interface WebhookSubscription {
+  id:      string;
+  url:     string;
+  events:  WebhookEvent[];
+  address: string;
+}
+
 export const webhooksApi = {
-  subscribe: (url: string, events: string[], address: string) =>
-    request('/webhooks/subscribe', {
+  subscribe: (url: string, events: WebhookEvent[], address: string) =>
+    request<WebhookSubscription>('/webhooks/subscribe', {
       method: 'POST',
       body: JSON.stringify({ url, events, address }),
     }),
 
   unsubscribe: (id: string) =>
-    request(`/webhooks/${id}`, { method: 'DELETE' }),
+    request<void>(`/webhooks/${id}`, { method: 'DELETE' }),
 };
