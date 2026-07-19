@@ -4,19 +4,8 @@ import { useEffect, useState } from 'react';
 import { useWallet }   from '@/context/WalletContext';
 import { useToast }    from '@/context/ToastContext';
 import { vestingApi, type ApiVestingSchedule } from '@/services/api';
+import { fmtStroops, vestPct } from '@/lib/vesting';
 import styles from './vesting.module.css';
-
-function fmt(stroops: string) {
-  return (Number(stroops) / 1e7).toLocaleString(undefined, { maximumFractionDigits: 2 });
-}
-
-function vestPct(s: ApiVestingSchedule): number {
-  const now = Math.floor(Date.now() / 1000);
-  if (now < s.cliffTime) return 0;
-  if (now >= s.endTime)  return 100;
-  if (s.endTime === s.cliffTime) return 100;
-  return Math.round(((now - s.cliffTime) / (s.endTime - s.cliffTime)) * 100);
-}
 
 export default function Vesting() {
   const { address }   = useWallet();
@@ -68,8 +57,8 @@ export default function Vesting() {
 
                 {[
                   ['Beneficiary', `${s.beneficiary.slice(0,5)}...${s.beneficiary.slice(-4)}`],
-                  ['Total',       `${fmt(s.totalAmount)} XLM`],
-                  ['Claimed',     `${fmt(s.claimed)} XLM`],
+                  ['Total',       `${fmtStroops(s.totalAmount)} XLM`],
+                  ['Claimed',     `${fmtStroops(s.claimed)} XLM`],
                 ].map(([k, v]) => (
                   <div key={k} className={styles.row}>
                     <span>{k}</span><span>{v}</span>
