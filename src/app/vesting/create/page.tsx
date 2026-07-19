@@ -54,7 +54,7 @@ export default function CreateVestingSchedule() {
       await vestingApi.create({
         beneficiary: form.beneficiary,
         token:       form.token,
-        totalAmount: String(Math.round(Number(form.totalAmount) * 1e7)),
+        totalAmount: Math.round(Number(form.totalAmount) * 1e7),
         startTime:   toUnixSeconds(form.startDate),
         cliffTime:   toUnixSeconds(form.cliffDate),
         endTime:     toUnixSeconds(form.endDate),

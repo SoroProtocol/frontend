@@ -64,7 +64,7 @@ export const streamsApi = {
 export interface NewVestingSchedule {
   beneficiary: string;
   token:       string;
-  totalAmount: string;
+  totalAmount: number;
   startTime:   number;
   cliffTime:   number;
   endTime:     number;
