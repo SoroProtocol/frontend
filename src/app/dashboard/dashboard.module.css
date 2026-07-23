@@ -20,6 +20,32 @@
 }
 .refreshBtn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.control { display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.85rem; }
+.control span { color: var(--text-muted); font-weight: 500; }
+.select {
+  background: var(--surface); color: var(--text);
+  border: 1px solid var(--border);
+  padding: 0.55rem 0.75rem; border-radius: var(--radius); font-size: 0.875rem;
+  min-width: 10rem; cursor: pointer;
+}
+.directionBtn {
+  background: var(--surface); color: var(--text-muted);
+  border: 1px solid var(--border);
+  padding: 0.55rem 1rem; border-radius: var(--radius); font-size: 0.875rem;
+  cursor: pointer;
+}
+.directionBtn:hover { color: var(--text); }
+.select:focus-visible, .directionBtn:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -39,8 +65,16 @@
 }
 
 .errorMsg { color: var(--danger); margin-bottom: 1rem; font-size: 0.9rem; }
-.empty, .noStreams { text-align: center; margin-top: 5rem; color: var(--text-muted); }
-.empty p, .noStreams p { margin-bottom: 1rem; }
+.empty, .noStreams, .noMatches { text-align: center; margin-top: 5rem; color: var(--text-muted); }
+.empty p, .noStreams p, .noMatches p { margin-bottom: 1rem; }
+.noMatches { margin-top: 3rem; }
+.clearBtn {
+  background: var(--surface); color: var(--text-muted);
+  border: 1px solid var(--border);
+  padding: 0.5rem 1.25rem; border-radius: var(--radius); font-size: 0.875rem;
+  cursor: pointer;
+}
+.clearBtn:hover { color: var(--text); }
 .connectBtn {
   background: var(--accent); color: #fff; border: none;
   padding: 0.6rem 1.5rem; border-radius: var(--radius); font-weight: 600;
