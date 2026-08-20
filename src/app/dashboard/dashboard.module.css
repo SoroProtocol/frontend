@@ -80,3 +80,7 @@
   padding: 0.6rem 1.5rem; border-radius: var(--radius); font-weight: 600;
   cursor: pointer;
 }
+
+.feedSection {
+  margin-top: 2.5rem;
+}
