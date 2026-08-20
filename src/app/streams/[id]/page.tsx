@@ -6,6 +6,7 @@ import { useStreamBalance }   from '@/hooks/useStreamBalance';
 import { useToast }           from '@/context/ToastContext';
 import { useContract }        from '@/hooks/useContract';
 import { streams }            from '@/lib/contracts';
+import { ActivityFeed }       from '@/components/organisms/ActivityFeed';
 import styles                 from './stream.module.css';
 
 function fmt(stroops: bigint): string {
@@ -20,7 +21,9 @@ export default function StreamDetail() {
   const { execute, loading: txLoading, error: txError } = useContract();
   const { stream, loading, error } = useStream(id);
 
-  const balance = useStreamBalance(
+  const { balance, syncing } = useStreamBalance(
+    stream?.contractStreamId ?? '',
+    address ?? '',
     stream ? BigInt(stream.ratePerSecond) : 0n,
     stream ? BigInt(stream.withdrawn)     : 0n,
     stream?.startTime ?? 0,
@@ -49,7 +52,10 @@ export default function StreamDetail() {
 
       <div className={styles.balanceCard}>
         <p className={styles.balanceLabel}>Withdrawable Balance</p>
-        <p className={styles.balanceValue}>{fmt(balance)} XLM</p>
+        <p className={styles.balanceValue}>
+          {fmt(balance)} XLM
+          {syncing && <span className={styles.syncingBadge}>syncing</span>}
+        </p>
         <p className={styles.balanceRate}>{perDay} XLM/day</p>
       </div>
 
@@ -80,7 +86,10 @@ export default function StreamDetail() {
                 if (!address) return;
                 toast.info('Confirm withdrawal in Freighter…');
                 const result = await execute(() => streams.withdrawStream(stream.contractStreamId, address));
-                if (result) toast.success(`Withdrawal confirmed! Tx: ${result.hash.slice(0, 12)}…`);
+                if (result) {
+                  toast.success(`Withdrawal confirmed! Tx: ${result.hash.slice(0, 12)}…`);
+                  router.refresh();
+                }
               }}
             >
               {txLoading ? 'Withdrawing…' : `Withdraw ${fmt(balance)} XLM`}
@@ -108,6 +117,10 @@ export default function StreamDetail() {
           )}
         </div>
       )}
+
+      <div className={styles.feedSection}>
+        <ActivityFeed walletAddress={address ?? undefined} />
+      </div>
     </div>
   );
 }
