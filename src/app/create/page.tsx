@@ -2,6 +2,8 @@
 import Link from 'next/link';
 import { useState, FormEvent } from 'react';
 import { useWallet } from '@/context/WalletContext';
+import { useContract } from '@/hooks/useContract';
+import { streams } from '@/lib/contracts';
 import styles from './create.module.css';
 
 interface FormState {
@@ -19,6 +21,7 @@ const INITIAL: FormState = {
 
 export default function CreateStream() {
   const { address } = useWallet();
+  const { execute, loading, error: contractError } = useContract();
   const [form,   setForm]   = useState<FormState>(INITIAL);
   const [errors, setErrors] = useState<Partial<FormState>>({});
   const [status, setStatus] = useState<'idle' | 'submitting' | 'done'>('idle');
@@ -37,11 +40,34 @@ export default function CreateStream() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!validate()) return;
+    if (!validate() || !address) return;
     setStatus('submitting');
-    // Contract call via SDK would go here
-    await new Promise(r => setTimeout(r, 1200));
-    setStatus('done');
+
+    // Convert rate from XLM/day to stroops/second
+    const ratePerDay = parseFloat(form.ratePerDay);
+    const stroopsPerDay = Math.round(ratePerDay * 1e7);
+    const ratePerSecond = Math.round(stroopsPerDay / 86400);
+    const totalSeconds = Math.floor(new Date(form.stopDate).getTime() / 1000) - Math.floor(new Date(form.startDate).getTime() / 1000);
+    const totalAmount = BigInt(ratePerSecond) * BigInt(totalSeconds);
+
+    const result = await execute(() =>
+      streams.createStream(
+        {
+          recipient: form.recipient,
+          token:     form.token,
+          amount:    totalAmount.toString(),
+          startTime: Math.floor(new Date(form.startDate).getTime() / 1000),
+          stopTime:  Math.floor(new Date(form.stopDate).getTime() / 1000),
+        },
+        address,
+      )
+    );
+
+    if (result) {
+      setStatus('done');
+    } else {
+      setStatus('idle');
+    }
   }
 
   if (!address) {
@@ -129,12 +155,16 @@ export default function CreateStream() {
           </label>
         </div>
 
+        {contractError && (
+          <p className={styles.error} role="alert">{contractError}</p>
+        )}
+
         <button
           className={styles.submit}
           type="submit"
-          disabled={status === 'submitting'}
+          disabled={status === 'submitting' || loading}
         >
-          {status === 'submitting' ? 'Creating stream…' : 'Create Stream'}
+          {status === 'submitting' || loading ? 'Creating stream…' : 'Create Stream'}
         </button>
       </form>
     </div>

@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useWallet }   from '@/context/WalletContext';
 import { useToast }    from '@/context/ToastContext';
+import { useContract } from '@/hooks/useContract';
+import { vesting as vestingContract } from '@/lib/contracts';
 import { vestingApi, type ApiVestingSchedule } from '@/services/api';
 import { fmtStroops, vestPct } from '@/lib/vesting';
 import styles from './vesting.module.css';
@@ -10,6 +12,7 @@ import styles from './vesting.module.css';
 export default function Vesting() {
   const { address }   = useWallet();
   const toast         = useToast();
+  const { execute, loading: txLoading, error: txError } = useContract();
   const [schedules, setSchedules] = useState<ApiVestingSchedule[]>([]);
   const [loading,   setLoading]   = useState(false);
   const [error,     setError]     = useState<string | null>(null);
@@ -78,12 +81,25 @@ export default function Vesting() {
                 <p className={styles.pctLabel}>{pct}% vested</p>
 
                 {!s.revoked && (
-                  <button
-                    className={styles.claimBtn}
-                    onClick={() => toast.info('On-chain claim coming in the next release')}
-                  >
-                    Claim Vested Tokens
-                  </button>
+                  <>
+                    {txError && <p className={styles.error} role="alert">{txError}</p>}
+                    <button
+                      className={styles.claimBtn}
+                      disabled={txLoading}
+                      onClick={async () => {
+                        if (!address) return;
+                        toast.info('Confirm claim in Freighter…');
+                        const result = await execute(() => vestingContract.claimVesting(s.id, address));
+                        if (result) {
+                          toast.success(`Claim confirmed! Tx: ${result.hash.slice(0, 12)}…`);
+                          // Refresh the list
+                          vestingApi.list(address).then(setSchedules).catch(() => {});
+                        }
+                      }}
+                    >
+                      {txLoading ? 'Claiming…' : 'Claim Vested Tokens'}
+                    </button>
+                  </>
                 )}
               </div>
             );
