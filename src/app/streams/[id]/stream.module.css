@@ -55,3 +55,34 @@
   font-weight: 600;
 }
 .notFound { text-align: center; margin-top: 6rem; color: var(--text-muted); }
+
+.loading { text-align: center; margin-top: 6rem; color: var(--text-muted); }
+.backBtn {
+  background: none; border: none; color: var(--text-muted); cursor: pointer;
+  font-size: 0.85rem; margin-bottom: 1rem; padding: 0;
+}
+.backBtn:hover { color: var(--text); }
+.error { color: var(--danger); font-size: 0.85rem; margin-bottom: 0.75rem; }
+.notParty { color: var(--text-muted); font-size: 0.85rem; text-align: center; width: 100%; }
+
+.syncingBadge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(255,255,255,0.2);
+  border-radius: 9999px;
+  padding: 0.15em 0.6em;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.feedSection {
+  margin-top: 2rem;
+}
