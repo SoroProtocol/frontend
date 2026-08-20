@@ -1,0 +1,149 @@
+.page { max-width: 640px; margin: 2rem auto; padding: 0 1.5rem; }
+.title { font-size: 1.75rem; font-weight: 700; margin-bottom: 1.5rem; }
+
+/* Progress bar */
+.progress { display: flex; gap: 0.5rem; margin-bottom: 2rem; }
+.progressStep {
+  flex: 1; height: 4px; border-radius: 2px;
+  background: var(--surface-2); transition: background 0.3s;
+}
+.progressStepDone { background: var(--accent); }
+.progressStepActive { background: var(--accent); opacity: 0.6; }
+
+/* Step labels */
+.stepLabel { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; }
+
+/* Mode cards */
+.modeGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+.modeCard {
+  background: var(--surface); border: 2px solid var(--border);
+  border-radius: var(--radius); padding: 1.5rem; cursor: pointer;
+  transition: border-color 0.2s, background 0.2s; text-align: center;
+}
+.modeCard:hover { border-color: var(--accent); background: var(--surface-2); }
+.modeCardSelected { border-color: var(--accent); background: var(--surface-2); }
+.modeCard h3 { font-size: 1rem; margin-bottom: 0.4rem; }
+.modeCard p { font-size: 0.8rem; color: var(--text-muted); }
+
+/* Form fields */
+.form { display: flex; flex-direction: column; gap: 1.25rem; }
+.field { display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.9rem; }
+.field span { color: var(--text-muted); font-weight: 500; }
+
+.input, .inputError {
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); padding: 0.6rem 0.85rem; border-radius: var(--radius);
+  font-size: 0.95rem; width: 100%;
+}
+.input:focus, .inputError:focus { outline: none; border-color: var(--accent); }
+.inputError { border-color: var(--danger); }
+.error { color: var(--danger); font-size: 0.8rem; }
+
+textarea.input { min-height: 100px; resize: vertical; font-family: monospace; font-size: 0.85rem; }
+
+.dateRow { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+/* Recipient list */
+.recipientList { display: flex; flex-direction: column; gap: 0.5rem; }
+.recipientRow {
+  display: flex; gap: 0.5rem; align-items: center;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 0.5rem 0.75rem;
+}
+.recipientRow .input { flex: 1; border: none; background: transparent; padding: 0.3rem 0; }
+.recipientRow .input:focus { outline: none; }
+.recipientAddr { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); flex: 1; overflow: hidden; text-overflow: ellipsis; }
+.recipientAmt { width: 100px; }
+.removeBtn {
+  background: none; border: none; color: var(--danger);
+  font-size: 1.1rem; padding: 0.2rem 0.4rem; cursor: pointer;
+}
+.addBtn {
+  background: var(--surface); border: 1px dashed var(--border);
+  color: var(--text-muted); padding: 0.6rem; border-radius: var(--radius);
+  cursor: pointer; font-size: 0.85rem; transition: border-color 0.2s;
+}
+.addBtn:hover { border-color: var(--accent); color: var(--text); }
+
+/* Tabs for input method */
+.tabs { display: flex; gap: 0; margin-bottom: 1rem; }
+.tab {
+  flex: 1; padding: 0.5rem; text-align: center; font-size: 0.85rem;
+  background: var(--surface); border: 1px solid var(--border);
+  cursor: pointer; color: var(--text-muted); transition: all 0.2s;
+}
+.tab:first-child { border-radius: var(--radius) 0 0 var(--radius); }
+.tab:last-child { border-radius: 0 var(--radius) var(--radius) 0; }
+.tabActive { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* File upload */
+.uploadZone {
+  border: 2px dashed var(--border); border-radius: var(--radius);
+  padding: 2rem; text-align: center; cursor: pointer;
+  transition: border-color 0.2s; color: var(--text-muted);
+}
+.uploadZone:hover { border-color: var(--accent); }
+.uploadZone input { display: none; }
+
+/* Review table */
+.reviewTable { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.reviewTable th {
+  text-align: left; padding: 0.5rem; color: var(--text-muted);
+  border-bottom: 1px solid var(--border); font-weight: 500;
+}
+.reviewTable td {
+  padding: 0.5rem; border-bottom: 1px solid var(--border);
+  font-family: monospace; font-size: 0.8rem;
+}
+.reviewTotal {
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--surface); border-radius: var(--radius);
+  padding: 1rem; margin-bottom: 1.5rem; font-weight: 600;
+}
+.reviewTotal span:last-child { color: var(--accent); font-size: 1.1rem; }
+
+/* Results */
+.resultRow {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.75rem; border-radius: var(--radius);
+  background: var(--surface); margin-bottom: 0.5rem;
+}
+.resultIcon { font-size: 1.2rem; }
+.resultSuccess .resultIcon { color: var(--success); }
+.resultFail .resultIcon { color: var(--danger); }
+.resultAddr { font-family: monospace; font-size: 0.8rem; flex: 1; overflow: hidden; text-overflow: ellipsis; }
+.resultError { font-size: 0.75rem; color: var(--danger); }
+
+/* Buttons */
+.btnRow { display: flex; gap: 0.75rem; margin-top: 1rem; }
+.submit, .nextBtn {
+  background: var(--accent); color: #fff; border: none;
+  padding: 0.75rem 1.5rem; border-radius: var(--radius);
+  font-weight: 600; font-size: 0.95rem; cursor: pointer;
+  transition: background 0.2s;
+}
+.submit:hover:not(:disabled), .nextBtn:hover:not(:disabled) { background: var(--accent-hover); }
+.submit:disabled, .nextBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+.backBtn {
+  background: var(--surface); color: var(--text); border: 1px solid var(--border);
+  padding: 0.75rem 1.5rem; border-radius: var(--radius);
+  font-weight: 600; font-size: 0.95rem; cursor: pointer;
+  transition: background 0.2s;
+}
+.backBtn:hover { background: var(--surface-2); }
+
+/* Gated / success */
+.gated, .success { text-align: center; margin-top: 6rem; color: var(--text-muted); }
+.checkmark { display: block; font-size: 3rem; color: var(--success); margin-bottom: 1rem; }
+.success h2 { color: var(--text); margin-bottom: 1rem; }
+.dashLink {
+  background: var(--accent); color: #fff; padding: 0.6rem 1.5rem;
+  border-radius: var(--radius); font-weight: 600; display: inline-block;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .modeGrid { grid-template-columns: 1fr; }
+  .dateRow { grid-template-columns: 1fr; }
+  .recipientRow { flex-wrap: wrap; }
+}
