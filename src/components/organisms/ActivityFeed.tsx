@@ -109,15 +109,12 @@ function EventRow({
 
 interface ActivityFeedProps {
   walletAddress?: string;
-  /** Show only events for a specific stream (filters by stream topic) */
-  streamId?: string;
   /** Max events per page */
   pageSize?: number;
 }
 
 export function ActivityFeed({
   walletAddress,
-  streamId,
   pageSize = 20,
 }: ActivityFeedProps) {
   const [activeFilter, setActiveFilter] = useState<StreamEventType | 'all'>('all');
@@ -129,15 +126,6 @@ export function ActivityFeed({
 
   const { events, loading, error, hasMore, loadMore, refresh, totalCount } =
     useStreamEvents({ walletAddress, types, limit: pageSize });
-
-  // Client-side filter for specific stream if provided
-  const visibleEvents = useMemo(() => {
-    if (!streamId) return events;
-    // Events related to a specific stream have the stream_id in topic[1]
-    // We filter by checking if any event's sender/recipient match or
-    // if the event is in the same contract (already filtered by contract)
-    return events;
-  }, [events, streamId]);
 
   return (
     <div className={styles.container}>
@@ -169,12 +157,12 @@ export function ActivityFeed({
       {/* Event list */}
       {error && <p className={styles.error}>{error}</p>}
 
-      {visibleEvents.length === 0 && !loading && (
+      {events.length === 0 && !loading && (
         <p className={styles.empty}>No activity yet.</p>
       )}
 
       <div className={styles.list}>
-        {visibleEvents.map((event) => (
+        {events.map((event) => (
           <EventRow
             key={event.id}
             event={event}

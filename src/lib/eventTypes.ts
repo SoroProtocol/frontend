@@ -45,16 +45,16 @@ export const EVENT_COLORS: Record<StreamEventType, string> = {
 
 /**
  * Maps raw Soroban event symbol strings (from the first topic) to our
- * typed event names.  The Rust contract emits symbols like "created",
- * "withdrawn", "cancelled", etc.
+ * typed event names.  The Rust contract emits PascalCase symbols like
+ * "StreamCreated", "Withdrawn", "Cancelled", etc.
  */
 export const SYMBOL_TO_TYPE: Record<string, StreamEventType> = {
-  created:           'StreamCreated',
-  withdrawn:         'Withdrawn',
-  cancelled:         'Cancelled',
-  vesting_created:   'VestingCreated',
-  vesting_claimed:   'VestingClaimed',
-  vesting_revoked:   'VestingRevoked',
+  StreamCreated:     'StreamCreated',
+  Withdrawn:         'Withdrawn',
+  Cancelled:         'Cancelled',
+  VestingCreated:    'VestingCreated',
+  VestingClaimed:    'VestingClaimed',
+  VestingRevoked:    'VestingRevoked',
 };
 
 /** Filter options for the activity feed UI */
