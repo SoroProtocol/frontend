@@ -9,6 +9,7 @@ import styles from './Navbar.module.css';
 const NAV_LINKS = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/create',    label: 'New Stream' },
+  { href: '/payroll',   label: 'Payroll' },
   { href: '/vesting',   label: 'Vesting' },
   { href: '/settings',  label: 'Settings' },
   { href: '/docs',      label: 'Docs' },
