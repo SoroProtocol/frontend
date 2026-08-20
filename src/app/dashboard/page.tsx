@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { useWallet }  from '@/context/WalletContext';
 import { useStreams }  from '@/hooks/useStreams';
 import { StreamCard } from '@/components/molecules/StreamCard';
+import { ActivityFeed } from '@/components/organisms/ActivityFeed';
 import {
   DEFAULT_QUERY,
   SORT_OPTIONS,
@@ -142,6 +143,11 @@ export default function Dashboard() {
           ))}
         </div>
       )}
+
+      {/* Activity feed */}
+      <div className={styles.feedSection}>
+        <ActivityFeed walletAddress={address} />
+      </div>
     </div>
   );
 }
