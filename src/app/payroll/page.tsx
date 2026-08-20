@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useWallet } from '@/context/WalletContext';
 import { useToast } from '@/context/ToastContext';
 import type { PayrollState, RecipientResult } from './types';
+import { distribute, distributeCustom } from '@/services/distributor';
 import { ModeStep } from './ModeStep';
 import { RecipientsStep } from './RecipientsStep';
 import { DetailsStep } from './DetailsStep';
@@ -77,20 +78,41 @@ export default function PayrollPage() {
 
   async function handleSubmit() {
     setSubmitting(true);
-    // Contract call via distributor.distribute() or distributor.distribute_custom()
-    // would go here. Simulating results for now.
-    await new Promise(r => setTimeout(r, 1500));
-    const simResults: RecipientResult[] = state.recipients.map(r => ({
-      address: r.address,
-      success: Math.random() > 0.1,
-      error: Math.random() > 0.1 ? undefined : 'Simulated failure',
-      txHash: Math.random() > 0.1 ? 'abc123def456' : undefined,
-    }));
-    setResults(simResults);
-    setSubmitting(false);
-    setStep(4);
-    const ok = simResults.filter(r => r.success).length;
-    toast.success(`${ok}/${simResults.length} payments submitted`);
+    try {
+      let txResults: { success: boolean; txHash?: string; error?: string }[];
+      if (state.mode === 'uniform') {
+        txResults = await distribute({
+          sender: address!,
+          token: state.token,
+          recipients: state.recipients.map(r => r.address),
+          ratePerDay: Number(state.ratePerDay),
+          startDate: state.startDate,
+          stopDate: state.stopDate,
+        });
+      } else {
+        txResults = await distributeCustom({
+          sender: address!,
+          token: state.token,
+          recipients: state.recipients.map(r => ({ address: r.address, amount: Number(r.amount) })),
+          startDate: state.startDate,
+          stopDate: state.stopDate,
+        });
+      }
+      const recipientResults: RecipientResult[] = state.recipients.map((r, i) => ({
+        address: r.address,
+        success: txResults[i]?.success ?? false,
+        txHash: txResults[i]?.txHash,
+        error: txResults[i]?.error,
+      }));
+      setResults(recipientResults);
+      setStep(4);
+      const ok = recipientResults.filter(r => r.success).length;
+      toast.success(`${ok}/${recipientResults.length} payments submitted`);
+    } catch (err) {
+      toast.error('Submission failed');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   function canGoNext(): boolean {
