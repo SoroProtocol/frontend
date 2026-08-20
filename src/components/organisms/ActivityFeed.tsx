@@ -3,9 +3,15 @@ import { useMemo, useState } from 'react';
 import {
   useStreamEvents,
   type StreamEvent,
-  type StreamEventType,
 } from '@/hooks/useStreamEvents';
 import { getNetwork } from '@/lib/contracts/network';
+import {
+  EVENT_LABELS,
+  EVENT_ICONS,
+  EVENT_COLORS,
+  EVENT_FILTER_OPTIONS,
+  type StreamEventType,
+} from '@/lib/eventTypes';
 import styles from './ActivityFeed.module.css';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -36,43 +42,6 @@ function explorerTxUrl(txHash: string): string {
   const network = net.name === 'mainnet' ? 'public' : 'testnet';
   return `https://stellar.expert/explorer/${network}/tx/${txHash}`;
 }
-
-const EVENT_LABELS: Record<StreamEventType, string> = {
-  StreamCreated:   'Created',
-  Withdrawn:       'Withdrawn',
-  Cancelled:       'Cancelled',
-  VestingCreated:  'Vesting Created',
-  VestingClaimed:  'Vesting Claimed',
-  VestingRevoked:  'Vesting Revoked',
-};
-
-const EVENT_ICONS: Record<StreamEventType, string> = {
-  StreamCreated:   '+',
-  Withdrawn:       '↓',
-  Cancelled:       '×',
-  VestingCreated:  '+',
-  VestingClaimed:  '↓',
-  VestingRevoked:  '×',
-};
-
-const EVENT_COLORS: Record<StreamEventType, string> = {
-  StreamCreated:   'var(--success, #22c55e)',
-  Withdrawn:       'var(--accent, #a78bfa)',
-  Cancelled:       'var(--danger, #ef4444)',
-  VestingCreated:  'var(--success, #22c55e)',
-  VestingClaimed:  'var(--accent, #a78bfa)',
-  VestingRevoked:  'var(--danger, #ef4444)',
-};
-
-const FILTER_OPTIONS: { value: StreamEventType | 'all'; label: string }[] = [
-  { value: 'all',           label: 'All Events' },
-  { value: 'StreamCreated', label: 'Created' },
-  { value: 'Withdrawn',     label: 'Withdrawn' },
-  { value: 'Cancelled',     label: 'Cancelled' },
-  { value: 'VestingCreated', label: 'Vesting Created' },
-  { value: 'VestingClaimed', label: 'Vesting Claimed' },
-  { value: 'VestingRevoked', label: 'Vesting Revoked' },
-];
 
 // ── Single event row ───────────────────────────────────────────────────────
 
@@ -186,7 +155,7 @@ export function ActivityFeed({
 
       {/* Filter chips */}
       <div className={styles.filters}>
-        {FILTER_OPTIONS.map((opt) => (
+        {EVENT_FILTER_OPTIONS.map((opt) => (
           <button
             key={opt.value}
             className={`${styles.chip} ${activeFilter === opt.value ? styles.chipActive : ''}`}

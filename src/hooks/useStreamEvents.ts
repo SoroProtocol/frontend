@@ -3,16 +3,11 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import * as StellarSdk from '@stellar/stellar-sdk';
 import { getRpcClient, getNetworkConfig } from '@/lib/contracts/client';
 import { STREAM_CONTRACT_ID } from '@/lib/contracts/constants';
+import { SYMBOL_TO_TYPE, type StreamEventType } from '@/lib/eventTypes';
+
+export type { StreamEventType } from '@/lib/eventTypes';
 
 // ── Types ──────────────────────────────────────────────────────────────────
-
-export type StreamEventType =
-  | 'StreamCreated'
-  | 'Withdrawn'
-  | 'Cancelled'
-  | 'VestingCreated'
-  | 'VestingClaimed'
-  | 'VestingRevoked';
 
 export interface StreamEvent {
   id:           string;
@@ -50,26 +45,7 @@ export interface UseStreamEventsReturn {
   totalCount:  number;
 }
 
-// ── Event type symbol lookup ────────────────────────────────────────────────
-
-const EVENT_TYPES: StreamEventType[] = [
-  'StreamCreated',
-  'Withdrawn',
-  'Cancelled',
-  'VestingCreated',
-  'VestingClaimed',
-  'VestingRevoked',
-];
-
-// Map symbol strings from contract events to our types
-const SYMBOL_TO_TYPE: Record<string, StreamEventType> = {
-  created:           'StreamCreated',
-  withdrawn:         'Withdrawn',
-  cancelled:         'Cancelled',
-  vesting_created:   'VestingCreated',
-  vesting_claimed:   'VestingClaimed',
-  vesting_revoked:   'VestingRevoked',
-};
+// ── Event type classification ──────────────────────────────────────────────
 
 function classifyEvent(topics: StellarSdk.xdr.ScVal[]): StreamEventType | null {
   if (!topics.length) return null;
