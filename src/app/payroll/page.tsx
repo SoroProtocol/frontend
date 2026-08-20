@@ -137,7 +137,7 @@ export default function PayrollPage() {
           />
         ))}
       </div>
-      <p className={styles.stepLabel}>Step {step + 1} of {STEPS.length}: {STEPS[step]}</p>
+      <p className={styles.stepLabel} aria-live="polite">Step {step + 1} of {STEPS.length}: {STEPS[step]}</p>
 
       {step === 0 && <ModeStep selected={state.mode} onSelect={m => setState(s => ({ ...s, mode: m }))} />}
       {step === 1 && state.mode && (
