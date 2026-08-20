@@ -27,7 +27,7 @@ function toScValI128(value: string | bigint): StellarSdk.xdr.ScVal {
 }
 
 function toScValAddress(address: string): StellarSdk.xdr.ScVal {
-  return StellarSdk.Address.addressToScVal(address);
+  return StellarSdk.Address.fromString(address).toScVal();
 }
 
 /**
@@ -44,7 +44,7 @@ export async function distribute(args: DistributeArgs, source: string): Promise<
   const recipientsVec = StellarSdk.xdr.ScVal.scvVec(recipientVals);
 
   const scArgs: StellarSdk.xdr.ScVal[] = [
-    toScValBytes32(args.token),
+    toScValAddress(args.token),
     toScValI128(args.amount),
     recipientsVec,
   ];
@@ -73,7 +73,7 @@ export async function distributeCustom(args: DistributeCustomArgs, source: strin
   const amountVals = args.amounts.map(a => toScValI128(a));
 
   const scArgs: StellarSdk.xdr.ScVal[] = [
-    toScValBytes32(args.token),
+    toScValAddress(args.token),
     StellarSdk.xdr.ScVal.scvVec(amountVals),
     StellarSdk.xdr.ScVal.scvVec(recipientVals),
   ];

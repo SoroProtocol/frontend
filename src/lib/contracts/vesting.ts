@@ -3,7 +3,7 @@
  */
 
 import * as StellarSdk from '@stellar/stellar-sdk';
-import { executeContractTx, getRpcClient, getNetworkConfig } from './client';
+import { executeContractTx, getRpcClient, getNetworkConfig, extractSimulationResult } from './client';
 import { VESTING_CONTRACT_ID } from './constants';
 import { ContractError, ContractErrorCode, parseContractError } from './errors';
 import type { CreateVestingArgs, VestingScheduleData, TxResult } from './types';
@@ -16,7 +16,7 @@ function requireContract(): string {
 }
 
 function toScValAddress(address: string): StellarSdk.xdr.ScVal {
-  return StellarSdk.Address.addressToScVal(address);
+  return StellarSdk.Address.fromString(address).toScVal();
 }
 
 function toScValI128(value: string | bigint): StellarSdk.xdr.ScVal {
@@ -41,7 +41,7 @@ export async function createVestingSchedule(args: CreateVestingArgs, source: str
 
   const scArgs: StellarSdk.xdr.ScVal[] = [
     toScValAddress(args.beneficiary),
-    toScValBytes32(args.token),
+    toScValAddress(args.token),
     toScValI128(args.totalAmount),
     toScValU64(args.startTime),
     toScValU64(args.cliffTime),
@@ -94,7 +94,7 @@ export async function getVestedOf(scheduleId: string, source: string): Promise<s
     StellarSdk.nativeToScVal(scheduleId, { type: 'bytes' }),
   );
 
-  const account = await rpc.loadAccount(source);
+  const account = await rpc.getAccount(source);
   const tx = new StellarSdk.TransactionBuilder(account, {
     fee: '1000',
     networkPassphrase: config.passphrase,
@@ -105,17 +105,13 @@ export async function getVestedOf(scheduleId: string, source: string): Promise<s
 
   const response = await rpc.simulateTransaction(tx);
 
-  if (StellarSdk.SorobanRpc.Api.isSimulationError(response)) {
+  if (StellarSdk.rpc.Api.isSimulationError(response)) {
     throw parseContractError(response.error);
   }
 
-  if (!response.resultXdr) return '0';
+  const val = extractSimulationResult(response);
+  if (!val) return '0';
 
-  const result = StellarSdk.xdr.TransactionResult.fromXDR(response.resultXdr, 'base64');
-  const results = result.result().results();
-  if (results.length === 0) return '0';
-
-  const val = results[0].tr().invokeHostFunction().success().returnValue();
   return StellarSdk.scValToNative(val).toString();
 }
 
@@ -133,7 +129,7 @@ export async function getVestingSchedule(scheduleId: string, source: string): Pr
     StellarSdk.nativeToScVal(scheduleId, { type: 'bytes' }),
   );
 
-  const account = await rpc.loadAccount(source);
+  const account = await rpc.getAccount(source);
   const tx = new StellarSdk.TransactionBuilder(account, {
     fee: '1000',
     networkPassphrase: config.passphrase,
@@ -144,21 +140,15 @@ export async function getVestingSchedule(scheduleId: string, source: string): Pr
 
   const response = await rpc.simulateTransaction(tx);
 
-  if (StellarSdk.SorobanRpc.Api.isSimulationError(response)) {
+  if (StellarSdk.rpc.Api.isSimulationError(response)) {
     throw parseContractError(response.error);
   }
 
-  if (!response.resultXdr) {
+  const val = extractSimulationResult(response);
+  if (!val) {
     throw new ContractError(ContractErrorCode.ScheduleNotFound);
   }
 
-  const result = StellarSdk.xdr.TransactionResult.fromXDR(response.resultXdr, 'base64');
-  const results = result.result().results();
-  if (results.length === 0) {
-    throw new ContractError(ContractErrorCode.ScheduleNotFound);
-  }
-
-  const val = results[0].tr().invokeHostFunction().success().returnValue();
   const native = StellarSdk.scValToNative(val) as Record<string, unknown>;
 
   return {

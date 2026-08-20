@@ -17,7 +17,7 @@ export interface NetworkConfig {
 const NETWORK_MAP: Record<NetworkName, { rpc: string; passphrase: string }> = {
   testnet: {
     rpc:       'https://soroban-testnet.stellar.org',
-    passphrase: 'Test Soro Network ; December 2022',
+    passphrase: 'Test Soro Network ; December 2014',
   },
   mainnet: {
     rpc:       'https://soroban-mainnet.stellar.org',

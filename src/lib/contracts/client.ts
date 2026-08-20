@@ -26,12 +26,12 @@ function getFreighter(): FreighterApi {
 }
 
 /** Lazy-initialised Soroban RPC client */
-let rpcClient: StellarSdk.SorobanRpc.Server | null = null;
+let rpcClient: StellarSdk.rpc.Server | null = null;
 
-export function getRpcClient(): StellarSdk.SorobanRpc.Server {
+export function getRpcClient(): StellarSdk.rpc.Server {
   if (!rpcClient) {
     const config = getNetwork();
-    rpcClient = new StellarSdk.SorobanRpc.Server(config.sorobanRpc);
+    rpcClient = new StellarSdk.rpc.Server(config.sorobanRpc);
   }
   return rpcClient;
 }
@@ -72,7 +72,7 @@ export async function buildContractTx(
   const config = getNetwork();
   const rpc = getRpcClient();
 
-  const account = await rpc.loadAccount(source);
+  const account = await rpc.getAccount(source);
 
   const contract = new StellarSdk.Contract(contractId);
   const invocation = contract.call(method, ...args);
@@ -89,28 +89,36 @@ export async function buildContractTx(
 }
 
 /**
- * Simulate a transaction to check for errors before signing.
- * Throws a typed ContractError if simulation fails.
+ * Simulate a transaction and assemble it with Soroban auth/footprint data.
+ * This is required before signing — Soroban transactions need the
+ * simulation result attached (authorization entries, resource footprints).
  *
  * @param unsignedXdr - Base64 XDR of the unsigned transaction
- * @returns SimulationResult with auth and cost info
+ * @returns Assembled transaction XDR ready for signing
  */
 export async function simulateTx(unsignedXdr: string): Promise<SimulationResult> {
   const rpc = getRpcClient();
-  const tx = new StellarSdk.Transaction(unsignedXdr, getNetwork().passphrase);
+  const passphrase = getNetwork().passphrase;
+  const tx = new StellarSdk.Transaction(unsignedXdr, passphrase);
 
   const response = await rpc.simulateTransaction(tx);
 
-  if (StellarSdk.SorobanRpc.Api.isSimulationError(response)) {
+  if (StellarSdk.rpc.Api.isSimulationError(response)) {
     throw parseContractError(response.error);
   }
 
+  // Assemble the transaction with Soroban auth entries and footprint
+  // assembleTransaction returns a TransactionBuilder — build() gives us the Transaction
+  const assembled = StellarSdk.rpc.assembleTransaction(tx, response);
+  const assembledTx = assembled.build();
+
   return {
-    result:    response.resultXdr ?? '',
-    auth:      (response.authorizationData ?? []).length > 0,
-    cost:      {
-      cpuInsns: String(response.cost?.cpuInsns ?? 0),
-      memBytes: String(response.cost?.memBytes ?? 0),
+    assembledXdr: assembledTx.toXDR(),
+    result:       response.result?.retval ?? null,
+    auth:         (response.result?.auth ?? []).length > 0,
+    cost:         {
+      cpuInsns: '0',
+      memBytes: '0',
     },
   };
 }
@@ -147,7 +155,7 @@ export async function submitTx(signedXdr: string): Promise<TxResult> {
 
     if (response.status === 'ERROR') {
       const errStr = response.errorResult
-        ? StellarSdk.xdr.TransactionResult.fromXDR(response.errorResult, 'base64').toString()
+        ? response.errorResult.toString()
         : 'Transaction submission failed';
       throw new ContractError(ContractErrorCode.SubmitFailed, errStr);
     }
@@ -170,15 +178,15 @@ async function pollForConfirmation(hash: string): Promise<TxResult> {
   while (Date.now() < deadline) {
     const response = await rpc.getTransaction(hash);
 
-    if (response.status === 'SUCCESS') {
+    if (response.status === StellarSdk.rpc.Api.GetTransactionStatus.SUCCESS) {
       return {
-        hash:    response.hash,
+        hash:    response.txHash,
         ledger:  response.ledger,
-        result:  response.resultXdr,
+        result:  response.resultXdr.toString(),
       };
     }
 
-    if (response.status === 'FAILED') {
+    if (response.status === StellarSdk.rpc.Api.GetTransactionStatus.FAILED) {
       throw new ContractError(ContractErrorCode.SubmitFailed, `Tx ${hash} failed on-chain`);
     }
 
@@ -187,6 +195,22 @@ async function pollForConfirmation(hash: string): Promise<TxResult> {
   }
 
   throw new ContractError(ContractErrorCode.NetworkError, `Tx ${hash} timed out waiting for confirmation`);
+}
+
+// ── Simulation result extraction ────────────────────────────────────────────
+
+/**
+ * Extract the native return value from a simulation response.
+ * Used by read-only contract calls (balance_of, get_stream, etc.).
+ *
+ * The parsed simulation response has `result.retval` which is the
+ * direct ScVal return value — no need to parse TransactionResult XDR.
+ */
+export function extractSimulationResult(
+  response: StellarSdk.rpc.Api.SimulateTransactionResponse,
+): StellarSdk.xdr.ScVal | undefined {
+  if (!StellarSdk.rpc.Api.isSimulationSuccess(response)) return undefined;
+  return response.result?.retval;
 }
 
 // ── High-level helper ───────────────────────────────────────────────────────
@@ -206,11 +230,11 @@ export async function executeContractTx(
   // 1. Build unsigned XDR
   const unsignedXdr = await buildContractTx(contractId, method, args, source);
 
-  // 2. Simulate — catches errors before Freighter pops up
-  await simulateTx(unsignedXdr);
+  // 2. Simulate and assemble — attaches Soroban auth/footprint data
+  const simulation = await simulateTx(unsignedXdr);
 
-  // 3. Sign via Freighter (user sees confirmation dialog)
-  const signedXdr = await signWithFreighter(unsignedXdr);
+  // 3. Sign the assembled tx via Freighter (user sees confirmation dialog)
+  const signedXdr = await signWithFreighter(simulation.assembledXdr);
 
   // 4. Submit and wait for confirmation
   return await submitTx(signedXdr);

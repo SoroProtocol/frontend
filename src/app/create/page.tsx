@@ -47,17 +47,16 @@ export default function CreateStream() {
     const ratePerDay = parseFloat(form.ratePerDay);
     const stroopsPerDay = Math.round(ratePerDay * 1e7);
     const ratePerSecond = Math.round(stroopsPerDay / 86400);
-    const totalSeconds = Math.floor(new Date(form.stopDate).getTime() / 1000) - Math.floor(new Date(form.startDate).getTime() / 1000);
-    const totalAmount = BigInt(ratePerSecond) * BigInt(totalSeconds);
 
     const result = await execute(() =>
       streams.createStream(
         {
-          recipient: form.recipient,
-          token:     form.token,
-          amount:    totalAmount.toString(),
-          startTime: Math.floor(new Date(form.startDate).getTime() / 1000),
-          stopTime:  Math.floor(new Date(form.stopDate).getTime() / 1000),
+          sender:        address,
+          recipient:     form.recipient,
+          token:         form.token,
+          ratePerSecond: ratePerSecond.toString(),
+          startTime:     Math.floor(new Date(form.startDate).getTime() / 1000),
+          stopTime:      Math.floor(new Date(form.stopDate).getTime() / 1000),
         },
         address,
       )

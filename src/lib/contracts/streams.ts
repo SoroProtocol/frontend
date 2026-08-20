@@ -6,7 +6,7 @@
  */
 
 import * as StellarSdk from '@stellar/stellar-sdk';
-import { executeContractTx, getRpcClient, getNetworkConfig } from './client';
+import { executeContractTx, getRpcClient, getNetworkConfig, extractSimulationResult } from './client';
 import { STREAM_CONTRACT_ID } from './constants';
 import { ContractError, ContractErrorCode, parseContractError } from './errors';
 import type { CreateStreamArgs, StreamData, TxResult } from './types';
@@ -21,7 +21,7 @@ function requireContract(): string {
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function toScValAddress(address: string): StellarSdk.xdr.ScVal {
-  return StellarSdk.Address.addressToScVal(address);
+  return StellarSdk.Address.fromString(address).toScVal();
 }
 
 function toScValI128(value: string | bigint): StellarSdk.xdr.ScVal {
@@ -49,14 +49,15 @@ export async function createStream(args: CreateStreamArgs, source: string): Prom
   const contractId = requireContract();
 
   const scArgs: StellarSdk.xdr.ScVal[] = [
+    toScValAddress(args.sender),
     toScValAddress(args.recipient),
-    toScValBytes32(args.token),
-    toScValI128(args.amount),
+    toScValAddress(args.token),
+    toScValU64(Number(args.ratePerSecond)),
     toScValU64(args.startTime),
     toScValU64(args.stopTime),
   ];
 
-  return executeContractTx(contractId, 'create_stream', scArgs, source);
+  return executeContractTx(contractId, 'create', scArgs, source);
 }
 
 /**
@@ -114,7 +115,7 @@ export async function getStreamBalance(streamId: string, source: string): Promis
     StellarSdk.nativeToScVal(streamId, { type: 'bytes' }),
   );
 
-  const account = await rpc.loadAccount(source);
+  const account = await rpc.getAccount(source);
   const tx = new StellarSdk.TransactionBuilder(account, {
     fee: '1000',
     networkPassphrase: config.passphrase,
@@ -125,18 +126,14 @@ export async function getStreamBalance(streamId: string, source: string): Promis
 
   const response = await rpc.simulateTransaction(tx);
 
-  if (StellarSdk.SorobanRpc.Api.isSimulationError(response)) {
+  if (StellarSdk.rpc.Api.isSimulationError(response)) {
     throw parseContractError(response.error);
   }
 
   // Extract the result — it's an i128 ScVal
-  if (!response.resultXdr) return '0';
+  const val = extractSimulationResult(response);
+  if (!val) return '0';
 
-  const result = StellarSdk.xdr.TransactionResult.fromXDR(response.resultXdr, 'base64');
-  const results = result.result().results();
-  if (results.length === 0) return '0';
-
-  const val = results[0].tr().invokeHostFunction().success().returnValue();
   return StellarSdk.scValToNative(val).toString();
 }
 
@@ -158,7 +155,7 @@ export async function getStream(streamId: string, source: string): Promise<Strea
     StellarSdk.nativeToScVal(streamId, { type: 'bytes' }),
   );
 
-  const account = await rpc.loadAccount(source);
+  const account = await rpc.getAccount(source);
   const tx = new StellarSdk.TransactionBuilder(account, {
     fee: '1000',
     networkPassphrase: config.passphrase,
@@ -169,21 +166,15 @@ export async function getStream(streamId: string, source: string): Promise<Strea
 
   const response = await rpc.simulateTransaction(tx);
 
-  if (StellarSdk.SorobanRpc.Api.isSimulationError(response)) {
+  if (StellarSdk.rpc.Api.isSimulationError(response)) {
     throw parseContractError(response.error);
   }
 
-  if (!response.resultXdr) {
-    throw new ContractError(ContractErrorCode.NotFound, 'No result from get_stream');
-  }
-
-  const result = StellarSdk.xdr.TransactionResult.fromXDR(response.resultXdr, 'base64');
-  const results = result.result().results();
-  if (results.length === 0) {
+  const val = extractSimulationResult(response);
+  if (!val) {
     throw new ContractError(ContractErrorCode.NotFound, 'Empty result from get_stream');
   }
 
-  const val = results[0].tr().invokeHostFunction().success().returnValue();
   const native = StellarSdk.scValToNative(val) as Record<string, unknown>;
 
   return {
@@ -195,6 +186,6 @@ export async function getStream(streamId: string, source: string): Promise<Strea
     startTime:     Number(native.start_time ?? native.startTime ?? 0),
     stopTime:      Number(native.stop_time ?? native.stopTime ?? 0),
     withdrawn:     String(native.withdrawn ?? '0'),
-    status:        (native.status as string) ?? 'active',
+    status:        (native.status as StreamData['status']) ?? 'active',
   };
 }

@@ -8,11 +8,12 @@
 // ── Stream Contract ─────────────────────────────────────────────────────────
 
 export interface CreateStreamArgs {
-  recipient: string;      // Stellar public key (G...)
-  token:     string;      // Asset contract address or 'native'
-  amount:    string;      // Total amount in stroops (bigint as string)
-  startTime: number;      // Unix timestamp (seconds)
-  stopTime:  number;      // Unix timestamp (seconds)
+  sender:       string;      // Sender's Stellar public key (G...)
+  recipient:    string;      // Recipient's Stellar public key (G...)
+  token:        string;      // Asset contract address or 'native'
+  ratePerSecond: string;     // Payment rate in stroops per second (u64 as string)
+  startTime:    number;      // Unix timestamp (seconds)
+  stopTime:     number;      // Unix timestamp (seconds)
 }
 
 export interface StreamData {
@@ -67,9 +68,10 @@ export interface DistributeCustomArgs {
 // ── Simulation Result ───────────────────────────────────────────────────────
 
 export interface SimulationResult {
-  result:    string;       // Base64 XDR of the simulated transaction
-  auth:      boolean;      // Whether authorization was needed
-  cost:      {
+  assembledXdr: string;    // Assembled XDR with Soroban auth/footprint (ready for signing)
+  result:       unknown;   // ScVal return value from the simulation (null if no result)
+  auth:         boolean;   // Whether authorization was needed
+  cost:         {
     cpuInsns: string;
     memBytes: string;
   };
