@@ -1,35 +1,41 @@
 'use client';
+import Link from 'next/link';
 import { useState } from 'react';
 import { useWallet } from '@/context/WalletContext';
 import { useToast } from '@/context/ToastContext';
-import type { PayrollState, RecipientResult } from './types';
-import { distribute, distributeCustom } from '@/services/distributor';
+import { usePayrollForm } from '@/hooks/usePayrollForm';
+import { useKeyboardNav } from '@/hooks/useKeyboardNav';
+import { distribute, distributeCustom } from '@/lib/contracts/distributor';
+import type { RecipientResult } from './types';
+import { calcEscrow } from '@/lib/payroll';
 import { ModeStep } from './ModeStep';
 import { RecipientsStep } from './RecipientsStep';
 import { DetailsStep } from './DetailsStep';
 import { ReviewStep } from './ReviewStep';
 import { ResultsStep } from './ResultsStep';
+import { ConfirmDialog } from './ConfirmDialog';
 import styles from './payroll.module.css';
 
 const STEPS = ['Mode', 'Recipients', 'Details', 'Review', 'Results'];
 
-const INITIAL: PayrollState = {
-  mode: null,
-  recipients: [],
-  token: 'native',
-  ratePerDay: '',
-  startDate: '',
-  stopDate: '',
-};
-
 export default function PayrollPage() {
   const { address } = useWallet();
   const toast = useToast();
+  const {
+    state, errors, setMode, setRecipients, setField,
+    validateDetails, validateRecipients, totalEscrow, reset,
+  } = usePayrollForm();
+
   const [step, setStep] = useState(0);
-  const [state, setState] = useState<PayrollState>(INITIAL);
   const [results, setResults] = useState<RecipientResult[]>([]);
   const [submitting, setSubmitting] = useState(false);
-  const [detailsErrors, setDetailsErrors] = useState<Partial<Record<string, string>>>({});
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  useKeyboardNav({
+    onBack: step > 0 && step < 4 ? () => setStep(s => s - 1) : undefined,
+    onNext: step < 3 ? () => goNext() : undefined,
+    enabled: !showConfirm && !submitting,
+  });
 
   if (!address) {
     return (
@@ -39,31 +45,10 @@ export default function PayrollPage() {
     );
   }
 
-  function updateField(field: string, value: string) {
-    setState(s => ({ ...s, [field]: value }));
-    setDetailsErrors(e => ({ ...e, [field]: undefined }));
-  }
-
   function validateStep(s: number): boolean {
     if (s === 0) return state.mode !== null;
-    if (s === 1) return state.recipients.length > 0;
-    if (s === 2) {
-      const e: Partial<Record<string, string>> = {};
-      if (state.mode === 'uniform' && (!state.ratePerDay || Number(state.ratePerDay) <= 0)) {
-        e.ratePerDay = 'Must be > 0';
-      }
-      if (!state.startDate) e.startDate = 'Required';
-      if (!state.stopDate) e.stopDate = 'Required';
-      if (state.startDate && state.stopDate && state.stopDate <= state.startDate) {
-        e.stopDate = 'Must be after start date';
-      }
-      if (state.mode === 'custom') {
-        const invalid = state.recipients.filter(r => !r.amount || Number(r.amount) <= 0);
-        if (invalid.length > 0) e.recipients = `${invalid.length} recipient(s) missing amount`;
-      }
-      setDetailsErrors(e);
-      return Object.keys(e).length === 0;
-    }
+    if (s === 1) return validateRecipients();
+    if (s === 2) return validateDetails();
     return true;
   }
 
@@ -77,26 +62,26 @@ export default function PayrollPage() {
   }
 
   async function handleSubmit() {
+    setShowConfirm(false);
     setSubmitting(true);
     try {
       let txResults: { success: boolean; txHash?: string; error?: string }[];
       if (state.mode === 'uniform') {
-        txResults = await distribute({
-          sender: address!,
-          token: state.token,
-          recipients: state.recipients.map(r => r.address),
-          ratePerDay: Number(state.ratePerDay),
-          startDate: state.startDate,
-          stopDate: state.stopDate,
-        });
+        const result = await distribute(
+          { token: state.token, amount: state.ratePerDay, recipients: state.recipients.map(r => r.address) },
+          address!,
+        );
+        txResults = state.recipients.map(() => ({ success: true, txHash: result.hash }));
       } else {
-        txResults = await distributeCustom({
-          sender: address!,
-          token: state.token,
-          recipients: state.recipients.map(r => ({ address: r.address, amount: Number(r.amount) })),
-          startDate: state.startDate,
-          stopDate: state.stopDate,
-        });
+        const result = await distributeCustom(
+          {
+            token: state.token,
+            amounts: state.recipients.map(r => r.amount),
+            recipients: state.recipients.map(r => r.address),
+          },
+          address!,
+        );
+        txResults = state.recipients.map(() => ({ success: true, txHash: result.hash }));
       }
       const recipientResults: RecipientResult[] = state.recipients.map((r, i) => ({
         address: r.address,
@@ -109,19 +94,15 @@ export default function PayrollPage() {
       const ok = recipientResults.filter(r => r.success).length;
       toast.success(`${ok}/${recipientResults.length} payments submitted`);
     } catch (err) {
-      toast.error('Submission failed');
+      toast.error(err instanceof Error ? err.message : 'Submission failed');
     } finally {
       setSubmitting(false);
     }
   }
 
-  function canGoNext(): boolean {
-    if (step === 0) return state.mode !== null;
-    if (step === 1) return state.recipients.length > 0;
-    if (step === 2) return true; // validated on click
-    if (step === 3) return !submitting;
-    return false;
-  }
+  const escrow = state.mode
+    ? calcEscrow(state.mode, state.recipients, state.ratePerDay, state.startDate, state.stopDate)
+    : 0;
 
   return (
     <div className={styles.page}>
@@ -139,13 +120,9 @@ export default function PayrollPage() {
       </div>
       <p className={styles.stepLabel} aria-live="polite">Step {step + 1} of {STEPS.length}: {STEPS[step]}</p>
 
-      {step === 0 && <ModeStep selected={state.mode} onSelect={m => setState(s => ({ ...s, mode: m }))} />}
+      {step === 0 && <ModeStep selected={state.mode} onSelect={setMode} />}
       {step === 1 && state.mode && (
-        <RecipientsStep
-          mode={state.mode}
-          recipients={state.recipients}
-          onChange={recipients => setState(s => ({ ...s, recipients }))}
-        />
+        <RecipientsStep mode={state.mode} recipients={state.recipients} onChange={setRecipients} />
       )}
       {step === 2 && state.mode && (
         <DetailsStep
@@ -154,8 +131,8 @@ export default function PayrollPage() {
           ratePerDay={state.ratePerDay}
           startDate={state.startDate}
           stopDate={state.stopDate}
-          errors={detailsErrors}
-          onChange={updateField}
+          errors={errors}
+          onChange={setField}
         />
       )}
       {step === 3 && <ReviewStep state={state} />}
@@ -167,13 +144,31 @@ export default function PayrollPage() {
             <button type="button" className={styles.backBtn} onClick={goBack}>Back</button>
           )}
           {step < 3 ? (
-            <button type="button" className={styles.nextBtn} onClick={goNext} disabled={!canGoNext()}>Next</button>
+            <button type="button" className={styles.nextBtn} onClick={goNext}>Next</button>
           ) : (
-            <button type="button" className={styles.submit} onClick={handleSubmit} disabled={submitting}>
-              {submitting ? 'Submitting…' : 'Confirm & Submit'}
+            <button type="button" className={styles.submit} onClick={() => setShowConfirm(true)} disabled={submitting}>
+              Review & Submit
             </button>
           )}
         </div>
+      )}
+
+      {step === 4 && (
+        <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
+          <button type="button" className={styles.backBtn} onClick={reset}>New Payroll</button>
+          <Link href="/dashboard" className={styles.dashLink} style={{ marginLeft: '0.75rem' }}>Dashboard</Link>
+        </div>
+      )}
+
+      {showConfirm && (
+        <ConfirmDialog
+          total={escrow}
+          token={state.token}
+          recipientCount={state.recipients.length}
+          onConfirm={handleSubmit}
+          onCancel={() => setShowConfirm(false)}
+          submitting={submitting}
+        />
       )}
     </div>
   );
