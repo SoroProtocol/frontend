@@ -4,6 +4,8 @@ import { useStream }          from '@/hooks/useStreams';
 import { useWallet }          from '@/context/WalletContext';
 import { useStreamBalance }   from '@/hooks/useStreamBalance';
 import { useToast }           from '@/context/ToastContext';
+import { useContract }        from '@/hooks/useContract';
+import { streams }            from '@/lib/contracts';
 import styles                 from './stream.module.css';
 
 function fmt(stroops: bigint): string {
@@ -15,6 +17,7 @@ export default function StreamDetail() {
   const router                     = useRouter();
   const { address }                = useWallet();
   const toast                      = useToast();
+  const { execute, loading: txLoading, error: txError } = useContract();
   const { stream, loading, error } = useStream(id);
 
   const balance = useStreamBalance(
@@ -67,22 +70,37 @@ export default function StreamDetail() {
 
       {isActive && (
         <div className={styles.actions}>
+          {txError && <p className={styles.error} role="alert">{txError}</p>}
           {isRecipient && (
             <button
               className={styles.btnWithdraw}
-              disabled={balance === 0n}
+              disabled={balance === 0n || txLoading}
               title={balance === 0n ? 'Nothing to withdraw yet' : undefined}
-              onClick={() => toast.info('Withdraw submitted — confirm in Freighter')}
+              onClick={async () => {
+                if (!address) return;
+                toast.info('Confirm withdrawal in Freighter…');
+                const result = await execute(() => streams.withdrawStream(stream.contractStreamId, address));
+                if (result) toast.success(`Withdrawal confirmed! Tx: ${result.hash.slice(0, 12)}…`);
+              }}
             >
-              Withdraw {fmt(balance)} XLM
+              {txLoading ? 'Withdrawing…' : `Withdraw ${fmt(balance)} XLM`}
             </button>
           )}
           {isSender && (
             <button
               className={styles.btnCancel}
-              onClick={() => toast.info('Cancel request submitted — confirm in Freighter')}
+              disabled={txLoading}
+              onClick={async () => {
+                if (!address) return;
+                toast.info('Confirm cancellation in Freighter…');
+                const result = await execute(() => streams.cancelStream(stream.contractStreamId, address));
+                if (result) {
+                  toast.success(`Stream cancelled! Tx: ${result.hash.slice(0, 12)}…`);
+                  router.refresh();
+                }
+              }}
             >
-              Cancel Stream
+              {txLoading ? 'Cancelling…' : 'Cancel Stream'}
             </button>
           )}
           {!isSender && !isRecipient && (
