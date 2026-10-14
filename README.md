@@ -122,3 +122,5 @@ See [`.env.example`](./.env.example) for the complete reference.
 ## Contributing
 
 Contributions are welcome. Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for branch conventions, commit message guidelines, and the pull request process.
+
+<!-- Verified for issue #18: feat(tokens): add token discovery registry and multi-token custom address support -->
